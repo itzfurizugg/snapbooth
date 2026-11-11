@@ -9,11 +9,16 @@ const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
 const VALID_FRAMES = new Set(['kilat', 'klasik', 'bioskop'])
 
 function configureCloudinary(): void {
+  const cloudinaryUrl = process.env.CLOUDINARY_URL
+  if (cloudinaryUrl) {
+    cloudinary.config({ cloudinary_url: cloudinaryUrl, secure: true })
+    return
+  }
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
   const apiSecret = process.env.CLOUDINARY_API_SECRET
   if (!cloudName || !apiKey || !apiSecret) {
-    throw new Error('Cloudinary belum dikonfigurasi di Vercel Environment Variables')
+    throw new Error('Set CLOUDINARY_URL atau CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, dan CLOUDINARY_API_SECRET di Vercel.')
   }
   cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true })
 }
@@ -96,7 +101,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
       expiresAt: expiresAt.toISOString(),
     })
   } catch (error) {
-    console.error('[snapbooth] Cloudinary upload failed:', error)
-    sendError(response, 502, error instanceof Error ? error.message : 'Upload Cloudinary gagal')
+    const cloudinaryError = error as { http_code?: number; message?: string; name?: string }
+    console.error('[snapbooth] Cloudinary upload failed:', {
+      name: cloudinaryError.name,
+      http_code: cloudinaryError.http_code,
+      message: cloudinaryError.message,
+    })
+    const message = cloudinaryError.message ?? 'Upload Cloudinary gagal'
+    sendError(response, cloudinaryError.http_code === 400 ? 400 : 502, message)
   }
 }

@@ -81,7 +81,7 @@ API membuat signed download URL yang berlaku hingga 1 jam, maksimal sampai expir
 **Environment variables**
 
 - `VITE_PUBLIC_URL` — URL publik frontend; tidak mengandung secret.
-- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — server-only; jangan beri prefix `VITE_`.
+- `CLOUDINARY_URL` atau trio `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — server-only; jangan beri prefix `VITE_`.
 
 ## 6. Aturan & Konvensi
 

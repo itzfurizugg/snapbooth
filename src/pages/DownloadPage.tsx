@@ -10,8 +10,21 @@ interface DownloadPageProps {
   id: string
 }
 
+async function downloadStrip(url: string, id: string): Promise<void> {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error('Unduhan gagal. Coba lagi.')
+  const blob = await response.blob()
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = objectUrl
+  link.download = `snapbooth-${id}.png`
+  link.click()
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+}
+
 export function DownloadPage({ id }: DownloadPageProps) {
   const [session, setSession] = useState<SessionState>({ status: 'loading' })
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setSession({ status: 'loading' })
@@ -82,10 +95,20 @@ export function DownloadPage({ id }: DownloadPageProps) {
               </div>
             </dl>
 
-            <a href={session.strip.imageUrl} download={`snapbooth-${session.strip.id}.png`} className="btn btn--primary btn--lg download-cta">
+            <button
+              type="button"
+              onClick={() => {
+                setDownloadError(null)
+                void downloadStrip(session.strip.imageUrl, session.strip.id).catch((error: unknown) => {
+                  setDownloadError(error instanceof Error ? error.message : 'Unduhan gagal. Coba lagi.')
+                })
+              }}
+              className="btn btn--primary btn--lg download-cta"
+            >
               <Download aria-hidden="true" size={20} strokeWidth={2} />
               <span>UNDUH STRIP</span>
-            </a>
+            </button>
+            {downloadError && <p role="alert">{downloadError}</p>}
 
             <p className="download-note">
               File strip tersimpan di Cloudinary. Unduh dan simpan salinan sebelum masa aktif berakhir.

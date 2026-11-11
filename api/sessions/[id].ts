@@ -4,11 +4,16 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 const ID_PATTERN = /^[A-HJ-NP-Za-km-z2-9]{16}$/
 
 function configureCloudinary(): void {
+  const cloudinaryUrl = process.env.CLOUDINARY_URL
+  if (cloudinaryUrl) {
+    cloudinary.config({ cloudinary_url: cloudinaryUrl, secure: true })
+    return
+  }
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
   const apiSecret = process.env.CLOUDINARY_API_SECRET
   if (!cloudName || !apiKey || !apiSecret) {
-    throw new Error('Cloudinary belum dikonfigurasi di Vercel Environment Variables')
+    throw new Error('Set CLOUDINARY_URL atau CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, dan CLOUDINARY_API_SECRET di Vercel.')
   }
   cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret, secure: true })
 }
