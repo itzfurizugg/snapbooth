@@ -80,7 +80,7 @@ export function QRView({ strip, onRestart }: QRViewProps) {
             <strong>{remaining}</strong>
           </div>
           <p className="qr-note">
-            File tersimpan di Cloudinary. Link unduh bertanda tangan aktif 24 jam.
+            File tersimpan di Cloudinary. Link strip aktif 24 jam; URL gambar bertanda tangan berlaku 1 jam.
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export function QRView({ strip, onRestart }: QRViewProps) {
 
           <div className="side-block side-block--yellow">
             <strong>Strip ini kedaluwarsa dalam {remaining}.</strong>
-            <p>Setelah masa aktif habis, file dihapus dari penyimpanan. Simpan hasil sekarang jika ingin menyimpannya permanen.</p>
+            <p>File dihapus otomatis oleh cleanup harian setelah masa aktif habis. Simpan hasil sekarang jika ingin menyimpannya permanen.</p>
             <Button variant="dark" onClick={onRestart}>
               MULAI SESI BARU
             </Button>

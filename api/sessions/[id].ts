@@ -32,7 +32,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   try {
     configureCloudinary()
-    const publicId = `snapbooth/${id}`
+    const publicId = `snapbooth/strips/${id}`
 
     if (request.method === 'DELETE') {
       const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image', type: 'authenticated', invalidate: true })
@@ -46,7 +46,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const frameId = typeof context.frameId === 'string' ? context.frameId : 'kilat'
 
     if (!expiresAt || new Date(expiresAt).getTime() <= Date.now()) {
-      if (expiresAt) void cloudinary.uploader.destroy(publicId, { resource_type: 'image', type: 'authenticated', invalidate: true })
+      if (expiresAt) {
+        await cloudinary.uploader.destroy(publicId, { resource_type: 'image', type: 'authenticated', invalidate: true })
+      }
       sendError(response, 410, 'Strip sudah kedaluwarsa')
       return
     }

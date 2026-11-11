@@ -77,7 +77,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     await cloudinary.uploader.upload(image, {
       resource_type: 'image',
       type: 'authenticated',
-      public_id: `snapbooth/${id}`,
+      public_id: `snapbooth/strips/${id}`,
       overwrite: false,
       format: 'png',
       tags: ['snapbooth-expiring', `expires-${Math.floor(expiresAt.getTime() / 1000)}`],
@@ -88,7 +88,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
       id,
       frameId,
       shareUrl: `${requestOrigin(request)}/s/${id}`,
-      imageUrl: cloudinary.utils.private_download_url(`snapbooth/${id}`, 'png', {
+      imageUrl: cloudinary.utils.private_download_url(`snapbooth/strips/${id}`, 'png', {
         resource_type: 'image',
         type: 'authenticated',
         expires_at: Math.floor(Date.now() / 1000) + 60 * 60,

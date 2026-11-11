@@ -34,8 +34,8 @@ Photobooth client berbasis web. Pengguna mengambil beberapa foto lewat kamera br
 | Kamera | Browser `getUserMedia` API |
 | Komposisi strip | HTML Canvas API (sisi klien) |
 | QR Code | Library generator QR di sisi klien |
-| Storage & metadata | Supabase (Storage + PostgreSQL) |
-| Hosting | Vercel |
+| Storage & metadata | Cloudinary authenticated assets + context metadata |
+| Hosting & API | Vercel (hosting + serverless functions) |
 
 ## 4. Struktur Folder (usulan)
 
@@ -48,8 +48,11 @@ snapbooth/
 │   ├── hooks/               # useCamera, useCountdown, dll
 │   ├── lib/
 │   │   ├── canvas.ts        # logika render strip
-│   │   ├── supabase.ts      # client Supabase
+│   │   ├── storage.ts       # API upload dan lookup strip
 │   │   └── qr.ts            # helper QR
+├── api/
+│   ├── sessions.ts         # upload Cloudinary
+│   └── sessions/[id].ts    # lookup signed URL / delete
 │   ├── pages/
 │   │   ├── Booth.tsx        # alur utama pengambilan foto
 │   │   └── Download.tsx     # halaman tujuan hasil scan QR
@@ -63,17 +66,22 @@ snapbooth/
 
 ## 5. Model Data (usulan)
 
-**Tabel `sessions`**
+**Cloudinary asset**
 
-| Kolom | Tipe | Keterangan |
-|-------|------|------------|
-| `id` | text (ID acak, mis. nanoid) | Primary key, dipakai di URL download |
-| `file_path` | text | Path file strip di storage |
-| `frame_id` | text | Template frame yang dipakai |
-| `created_at` | timestamptz | Waktu dibuat |
-| `expires_at` | timestamptz | Waktu kedaluwarsa (default +24 jam) |
+| Field | Keterangan |
+|-------|------------|
+| `public_id` | `snapbooth/strips/<id>`; ID acak dipakai di URL download |
+| `type` | `authenticated`; asset tidak tersedia lewat URL publik biasa |
+| `context.frameId` | ID template frame |
+| `context.expiresAt` | Waktu kedaluwarsa, 24 jam setelah upload |
+| `created_at` | Waktu upload Cloudinary |
 
-**Storage:** bucket `strips` untuk file PNG/JPEG hasil akhir. File dan row dihapus oleh cleanup terjadwal setelah `expires_at`.
+API membuat signed download URL yang berlaku hingga 1 jam, maksimal sampai expiry. Setelah 24 jam API menolak akses dan menghapus asset saat link kedaluwarsa dibuka. Tanpa Cron, asset yang tidak dibuka lagi bisa tertinggal di Cloudinary.
+
+**Environment variables**
+
+- `VITE_PUBLIC_URL` — URL publik frontend; tidak mengandung secret.
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — server-only; jangan beri prefix `VITE_`.
 
 ## 6. Aturan & Konvensi
 
