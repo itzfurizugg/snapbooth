@@ -75,12 +75,14 @@ async function saveWithLocalApi(imageDataUrl: string, frameId: FrameId): Promise
   const payload: unknown = await response.json().catch(() => null)
 
   if (!response.ok) {
-    const message =
+    const serverMessage =
       payload && typeof payload === 'object' && 'error' in payload
         ? String((payload as { error: string }).error)
-        : response.status === 404
-          ? 'Storage lokal tidak aktif. Restart server dengan npm run dev lalu coba lagi.'
-          : `Upload strip gagal (${response.status})`
+        : ''
+    const message =
+      response.status === 404
+        ? 'Versi deploy belum terhubung ke penyimpanan cloud. Hubungi pengelola untuk mengatur Supabase, lalu deploy ulang.'
+        : serverMessage || `Upload strip gagal (${response.status})`
     throw new Error(message)
   }
 
@@ -150,6 +152,14 @@ export async function fetchSharedStrip(id: string): Promise<FetchResult> {
   const response = await fetch(`/api/sessions/${encodeURIComponent(id)}`, {
     headers: { Accept: 'application/json' },
   })
+
+  if (response.status === 404) {
+    const details = await response.json().catch(() => null)
+    if (details && typeof details === 'object' && 'error' in details) {
+      throw new Error(String((details as { error: string }).error))
+    }
+    throw new Error('Tautan unduh ini tidak tersedia pada versi deploy ini.')
+  }
 
   if (response.status === 410) {
     return { state: 'expired' }

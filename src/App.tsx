@@ -87,6 +87,7 @@ function App() {
       setStep('qr')
     } catch (caught) {
       setProcessError(caught instanceof Error ? caught.message : 'Strip gagal diproses')
+      setProcessStage(1)
     }
   }
 
