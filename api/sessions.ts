@@ -74,7 +74,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     configureCloudinary()
     const id = createId()
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    const upload = await cloudinary.uploader.upload(image, {
+    await cloudinary.uploader.upload(image, {
       resource_type: 'image',
       type: 'authenticated',
       public_id: `snapbooth/${id}`,
@@ -88,7 +88,11 @@ export default async function handler(request: VercelRequest, response: VercelRe
       id,
       frameId,
       shareUrl: `${requestOrigin(request)}/s/${id}`,
-      imageUrl: upload.secure_url,
+      imageUrl: cloudinary.utils.private_download_url(`snapbooth/${id}`, 'png', {
+        resource_type: 'image',
+        type: 'authenticated',
+        expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
+      }),
       expiresAt: expiresAt.toISOString(),
     })
   } catch (error) {

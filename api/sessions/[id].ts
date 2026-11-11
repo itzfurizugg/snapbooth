@@ -54,7 +54,11 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.status(200).json({
       id,
       frameId,
-      imageUrl: cloudinary.url(publicId, { resource_type: 'image', type: 'authenticated', format: 'png', secure: true }),
+      imageUrl: cloudinary.utils.private_download_url(publicId, 'png', {
+        resource_type: 'image',
+        type: 'authenticated',
+        expires_at: Math.min(new Date(expiresAt).getTime(), Date.now() + 60 * 60 * 1000) / 1000,
+      }),
       expiresAt,
       createdAt: resource.created_at,
     })
