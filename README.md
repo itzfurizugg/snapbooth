@@ -13,19 +13,18 @@ npm run dev
 
 ## Deploy Vercel + Cloudinary
 
-API Vercel `api/sessions.ts` mengunggah strip PNG authenticated/private dengan ID acak. `api/sessions/[id].ts` mengeluarkan URL bertanda tangan berumur pendek dan menghapus strip kedaluwarsa saat tautan dibuka lagi. `api/cron/cleanup.ts` menghapus file lewat Cloudinary Admin API. Cron berjalan setiap jam; file yang sudah lewat 24 jam mungkin tetap tersimpan sampai cron berikutnya.
+API Vercel `api/sessions.ts` mengunggah strip PNG authenticated/private dengan ID acak. `api/sessions/[id].ts` mengeluarkan URL bertanda tangan berumur pendek dan menghapus strip kedaluwarsa saat tautan dibuka lagi. Tanpa cron, asset Cloudinary tidak dibersihkan otomatis; buat upload preset dengan `auto_delete_after` bila tersedia di plan Cloudinary.
 
 Di Cloudinary, siapkan account dengan akses upload dan Admin API. Di Vercel → Project → Settings → Environment Variables tambahkan untuk Production (dan Preview bila perlu):
 
 - `CLOUDINARY_CLOUD_NAME`
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET` — server-only, jangan beri prefix `VITE_`
-- `CRON_SECRET` — random secret panjang untuk lindungi cron endpoint
 - `VITE_PUBLIC_URL=https://snapbooth-flame.vercel.app` — gunakan domain deploy yang benar
 
 Deploy ulang setelah environment variables tersimpan. Uji upload dan tautan download. Vercel Cron dijadwalkan per jam pada plan Hobby; plan lain dapat mendukung jadwal lebih rapat.
 
-Uji endpoint cleanup manual dengan `Authorization: Bearer <CRON_SECRET>`. Vercel tidak menjalankan `server/localApi.ts`; file itu hanya untuk dev/preview lokal. Jangan gunakan filesystem lokal untuk hosting serverless.
+Vercel tidak menjalankan `server/localApi.ts`; file itu hanya untuk dev/preview lokal. Jangan gunakan filesystem lokal untuk hosting serverless.
 
 ## Frame
 
