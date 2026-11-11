@@ -78,7 +78,9 @@ async function saveWithLocalApi(imageDataUrl: string, frameId: FrameId): Promise
     const message =
       payload && typeof payload === 'object' && 'error' in payload
         ? String((payload as { error: string }).error)
-        : `Upload strip gagal (${response.status})`
+        : response.status === 404
+          ? 'Storage lokal tidak aktif. Restart server dengan npm run dev lalu coba lagi.'
+          : `Upload strip gagal (${response.status})`
     throw new Error(message)
   }
 

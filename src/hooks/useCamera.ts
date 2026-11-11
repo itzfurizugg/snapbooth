@@ -162,13 +162,13 @@ export function useCamera(): UseCameraResult {
     }
   }, [])
 
+  const facingRef = useRef(facing)
   useEffect(() => {
-    if (status === 'ready' || status === 'requesting') {
-      void start()
+    if (facingRef.current !== facing) {
+      facingRef.current = facing
+      if (status === 'ready' || status === 'requesting') void start()
     }
-    // The facing change should restart an already running camera only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facing])
+  }, [facing, start, status])
 
   return { videoRef, status, error, facing, start, stop, flip }
 }

@@ -48,6 +48,7 @@ function App() {
   }, [])
 
   function beginCamera() {
+    setStripCode(createStripCode())
     setPhotos(Array.from({ length: getFrameSlots(frameId) }, () => null))
     setRetakeIndex(null)
     setStep('camera')
@@ -116,6 +117,7 @@ function App() {
       />
     )
   } else if (step === 'review') {
+    const code = stripCode || 'BERSIAP'
     content = (
       <ReviewStage
         photos={photos.filter((photo): photo is string => Boolean(photo))}
@@ -129,7 +131,7 @@ function App() {
         onReset={reset}
         onBack={() => setStep('camera')}
         onSubmit={() => void makeStrip()}
-        code={stripCode || createStripCode()}
+        code={code}
       />
     )
   } else if (step === 'processing') {
@@ -141,9 +143,14 @@ function App() {
             <div className="process-error" role="alert">
               <strong>STRIP GAGAL DIBUAT</strong>
               <p>{processError}</p>
-              <button type="button" onClick={() => setStep('review')}>
-                KEMBALI KE FOTO
-              </button>
+              <div className="process-error-actions">
+                <button type="button" onClick={() => void makeStrip()}>
+                  COBA LAGI
+                </button>
+                <button type="button" onClick={() => setStep('review')}>
+                  KEMBALI KE FOTO
+                </button>
+              </div>
             </div>
           ) : (
             <p>Foto mentah tidak disimpan. Tunggu sebentar, strip sedang dirakit.</p>

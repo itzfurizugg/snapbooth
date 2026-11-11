@@ -28,6 +28,7 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
   const [fatalError, setFatalError] = useState<string | null>(null)
 
   const photosRef = useRef(photos)
+  const videoRefLatest = useRef(videoRef)
   const aborted = useRef(false)
   const capturingRef = useRef(false)
 
@@ -69,7 +70,9 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
         setFlash(true)
         await wait(140)
 
-        const data = captureVideoFrame(videoRef.current)
+        const activeVideo = videoRefLatest.current.current
+        if (!activeVideo) throw new Error('Kamera belum siap')
+        const data = captureVideoFrame(activeVideo)
         const next = [...photosRef.current]
         next[index] = data
         photosRef.current = next
