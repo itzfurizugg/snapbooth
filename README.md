@@ -2,43 +2,31 @@
 
 Photobooth client berbasis browser. Foto ditangkap dan dirakit di perangkat, lalu strip dibagikan lewat QR. UI berbahasa Indonesia, tanpa akun.
 
-## Jalankan
+## Jalankan lokal
 
 ```sh
 npm install
 npm run dev
 ```
 
-Kamera bekerja di `localhost` atau HTTPS. Jalankan production build dengan `npm run build`; lint dengan `npm run lint`.
+`npm run dev` memakai API disk lokal untuk uji lokal, bukan Cloudinary. Untuk uji API serverless Cloudinary, jalankan `npm run vercel:dev` setelah Vercel CLI terpasang dan login. Kamera bekerja di `localhost` atau HTTPS.
 
-## Simpanan lokal
+## Deploy Vercel + Cloudinary
 
-Tanpa Supabase, `vite.config.ts` memasang API storage lokal otomatis untuk dev dan preview. File strip disimpan di `.snapbooth-data/` (diabaikan Git), metadata kedaluwarsa 24 jam, dan endpoint yang tersedia:
+API Vercel `api/sessions.ts` mengunggah strip PNG authenticated/private dengan ID acak. `api/sessions/[id].ts` mengeluarkan URL bertanda tangan berumur pendek dan menghapus strip kedaluwarsa saat tautan dibuka lagi. `api/cron/cleanup.ts` menghapus file lewat Cloudinary Admin API. Cron berjalan setiap jam; file yang sudah lewat 24 jam mungkin tetap tersimpan sampai cron berikutnya.
 
-- `POST /api/sessions` dengan JSON `{ image, frameId }` (PNG data URL)
-- `GET /api/sessions/:id`
-- `GET /api/strips/:id.png`
+Di Cloudinary, siapkan account dengan akses upload dan Admin API. Di Vercel → Project → Settings → Environment Variables tambahkan untuk Production (dan Preview bila perlu):
 
-Server mendengarkan di jaringan lokal. Jika booth dibuka lewat `localhost`, QR otomatis memakai alamat LAN mesin booth agar bisa discan ponsel pada Wi-Fi yang sama. Set `SNAPBOOTH_PUBLIC_URL` (atau `VITE_PUBLIC_URL`) jika ingin memaksa origin lain.
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET` — server-only, jangan beri prefix `VITE_`
+- `CRON_SECRET` — random secret panjang untuk lindungi cron endpoint
+- `VITE_PUBLIC_URL=https://snapbooth-flame.vercel.app` — gunakan domain deploy yang benar
 
-API lokal ini tidak ikut ter-deploy ke hosting statis seperti Vercel. Untuk produksi, pakai Supabase di bawah.
+Deploy ulang setelah environment variables tersimpan. Uji upload dan tautan download. Vercel Cron dijadwalkan per jam pada plan Hobby; plan lain dapat mendukung jadwal lebih rapat.
 
-## Supabase
+Uji endpoint cleanup manual dengan `Authorization: Bearer <CRON_SECRET>`. Vercel tidak menjalankan `server/localApi.ts`; file itu hanya untuk dev/preview lokal. Jangan gunakan filesystem lokal untuk hosting serverless.
 
-1. Salin `.env.example` ke `.env.local`, isi `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, dan `VITE_PUBLIC_URL` dengan origin deployment HTTPS yang persis.
-2. Jalankan `supabase/schema.sql` di SQL editor. Bucket `strips` public read; tabel `sessions` menerima insert publik dan read unexpired. Anon key boleh ada di frontend; **jangan pernah gunakan service-role key di browser**.
-3. Deploy Edge Function `cleanup-expired-strips` dan tetapkan secrets:
+## Frame
 
-```sh
-supabase secrets set CLEANUP_SECRET="<random-secret>"
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY="<service-role-key>"
-```
-
-4. Simpan `project_url` dan `cleanup_secret` di Supabase Vault. Uncomment schedule block di `supabase/schema.sql`; task akan memanggil cleanup setiap 15 menit. Pastikan `pg_cron`, `pg_net`, dan Vault aktif.
-5. Rebuild/deploy. Storage expiry dibersihkan berkala; jangan janjikan penghapusan tepat pada detik ke-24 jam.
-
-RLS membatasi sesi dan tipe/id file, batas upload 12 MiB. Uji policy di project Supabase non-production sebelum membuka booth publik.
-
-## Catatan produk
-
-Mode frame `Kilat` dan `Klasik` memakai empat foto; `Bioskop` memakai tiga. Frame dan slot dikonfigurasi di `src/lib/frames.ts`; komposisi cover, mirror opsional, dan output PNG ada di `src/lib/canvas.ts`. QR mengarah ke `/s/:id`.
+Frame `Kilat` dan `Klasik` memakai empat foto; `Bioskop` memakai tiga. Konfigurasi ada di `src/lib/frames.ts`, renderer Canvas di `src/lib/canvas.ts`.

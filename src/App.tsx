@@ -144,6 +144,9 @@ function App() {
             <div className="process-error" role="alert">
               <strong>STRIP GAGAL DIBUAT</strong>
               <p>{processError}</p>
+              <p className="process-error-help">
+                Periksa Cloudinary Environment Variables di Vercel, lalu jalankan redeploy jika baru diubah.
+              </p>
               <div className="process-error-actions">
                 <button type="button" onClick={() => void makeStrip()}>
                   COBA LAGI

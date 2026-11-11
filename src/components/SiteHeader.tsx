@@ -1,5 +1,4 @@
 import { Camera } from 'lucide-react'
-import { isSupabaseConfigured } from '../lib/supabase'
 import { ButtonLink } from './Button'
 
 export function SiteHeader() {
@@ -20,7 +19,7 @@ export function SiteHeader() {
           <span className="status-dot" aria-hidden="true" />
           <span>BOOTH SIAP</span>
           <span className="status-sep">·</span>
-          <span>{isSupabaseConfigured ? 'SUPABASE' : 'STORAGE LOKAL'}</span>
+          <span>{import.meta.env.DEV ? 'STORAGE LOKAL' : 'CLOUDINARY'}</span>
         </div>
 
         <nav className="header-actions" aria-label="Navigasi utama">

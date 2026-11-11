@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy, Download, ExternalLink, RefreshCw, Smartphone } from 'lucide-react'
 import type { SavedStrip } from '../types'
-import { isSupabaseConfigured } from '../lib/supabase'
 import { generateQrDataUrl } from '../lib/qr'
 import { formatRemaining } from '../lib/format'
 import { Button, ButtonLink } from './Button'
@@ -81,9 +80,7 @@ export function QRView({ strip, onRestart }: QRViewProps) {
             <strong>{remaining}</strong>
           </div>
           <p className="qr-note">
-            {isSupabaseConfigured
-              ? 'File tersimpan di cloud, bisa diunduh dari jaringan mana pun.'
-              : 'Mode lokal: QR valid selama ponsel berada di jaringan yang sama dengan booth.'}
+            File tersimpan di Cloudinary. Link unduh bertanda tangan aktif 24 jam.
           </p>
         </div>
 

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { ArrowRight, CheckCircle2, Download, RefreshCw, TimerOff } from 'lucide-react'
 import type { SessionState } from '../types'
 import { fetchSharedStrip } from '../lib/storage'
-import { isSupabaseConfigured } from '../lib/supabase'
 import { getFrame } from '../lib/frames'
 import { formatRemaining } from '../lib/format'
 import { Button, ButtonLink } from '../components/Button'
@@ -89,9 +88,7 @@ export function DownloadPage({ id }: DownloadPageProps) {
             </a>
 
             <p className="download-note">
-              {isSupabaseConfigured
-                ? 'File diangkat sebagai PNG resolusi penuh dan akan dihapus otomatis setelah 24 jam.'
-                : 'Mode lokal: file disimpan di perangkat booth dan bisa diunduh selama jaringan sama. Agar tetap tersedia, simpan sekarang.'}
+              File strip tersimpan di Cloudinary. Unduh dan simpan salinan sebelum masa aktif berakhir.
             </p>
 
             <ButtonLink href="/" icon={ArrowRight}>
