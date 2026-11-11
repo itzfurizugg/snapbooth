@@ -125,7 +125,7 @@ export function DownloadPage({ id }: DownloadPageProps) {
         <div className="download-state" role="alert">
           <TimerOff aria-hidden="true" size={48} strokeWidth={1.75} />
           <h2>LINK INI KEDALUWARSA</h2>
-          <p>Strip kedaluwarsa setelah 24 jam dan akan dihapus oleh cleanup terjadwal.</p>
+          <p>Link strip sudah tidak berlaku. File mungkin tetap tersimpan di Cloudinary.</p>
           <ButtonLink href="/" icon={ArrowRight}>
             BUAT STRIP BARU
           </ButtonLink>

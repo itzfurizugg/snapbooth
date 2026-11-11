@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import type { BoothStep, FrameId, SavedStrip } from './types'
 import { Landing } from './components/Landing'
 import { SiteHeader } from './components/SiteHeader'
-import { Ticker } from './components/Ticker'
 import { FramePicker } from './components/FramePicker'
 import { CameraStage } from './components/CameraStage'
 import { ReviewStage } from './components/ReviewStage'
@@ -179,16 +178,7 @@ function App() {
         {content}
       </main>
       {showFooter && (
-        <>
-          <Ticker />
-          <footer className="site-footer">
-            <span>SNAPBOOTH / WEB PHOTOBOOTH</span>
-            <span>FOTO TETAP DI PERANGKAT. LINK MATI 24 JAM.</span>
-            <a href="/" onClick={(event) => { event.preventDefault(); reset() }}>
-              MULAI ULANG
-            </a>
-          </footer>
-        </>
+
       )}
     </div>
   )

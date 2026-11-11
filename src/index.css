@@ -2,7 +2,7 @@
 @import './App.css';
 
 :root {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   color: var(--ink);
   background: var(--paper);
   font-synthesis: none;

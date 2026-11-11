@@ -1,9 +1,9 @@
 :root {
   --ink: #161512;
   --ink-soft: #302f29;
-  --paper: #f5f2e9;
-  --paper-deep: #e8e4d9;
-  --line: #cbc7bb;
+  --paper: #f7f4ee;
+  --paper-deep: #efe9df;
+  --line: #d1cbc0;
   --muted: #77746a;
   --signal: #1d5c45;
   --signal-deep: #143e31;
@@ -11,6 +11,7 @@
   --danger: #ad3026;
   --warning: #f0e83c;
   --font-mono: 'Courier New', Courier, monospace;
+  --font-ui: Arial, Helvetica, sans-serif;
   --page: 1280px;
   --side: 24px;
   --duration: 180ms;

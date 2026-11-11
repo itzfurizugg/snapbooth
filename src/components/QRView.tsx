@@ -111,7 +111,7 @@ export function QRView({ strip, onRestart }: QRViewProps) {
 
           <div className="side-block side-block--yellow">
             <strong>Strip ini kedaluwarsa dalam {remaining}.</strong>
-            <p>File dihapus otomatis oleh cleanup harian setelah masa aktif habis. Simpan hasil sekarang jika ingin menyimpannya permanen.</p>
+            <p>Link aktif 24 jam. Simpan strip sekarang; file dapat tetap tersimpan di Cloudinary setelah link kedaluwarsa.</p>
             <Button variant="dark" onClick={onRestart}>
               MULAI SESI BARU
             </Button>
