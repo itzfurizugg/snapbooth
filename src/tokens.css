@@ -1,0 +1,18 @@
+:root {
+  --ink: #161512;
+  --ink-soft: #302f29;
+  --paper: #f5f2e9;
+  --paper-deep: #e8e4d9;
+  --line: #cbc7bb;
+  --muted: #77746a;
+  --signal: #1d5c45;
+  --signal-deep: #143e31;
+  --signal-wash: #dce8dc;
+  --danger: #ad3026;
+  --warning: #f0e83c;
+  --font-mono: 'Courier New', Courier, monospace;
+  --page: 1280px;
+  --side: 24px;
+  --duration: 180ms;
+  --ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+}
