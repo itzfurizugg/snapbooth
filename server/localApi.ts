@@ -1,14 +1,12 @@
 import { randomBytes } from 'node:crypto'
-import { mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises'
+import { v2 as cloudinary } from 'cloudinary'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { networkInterfaces } from 'node:os'
-import path from 'node:path'
 import type { Plugin } from 'vite'
 
 const EXPIRY_MS = 24 * 60 * 60 * 1000
 const MAX_BODY_BYTES = 16 * 1024 * 1024
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024
-const FRAME_IDS = new Set(['kilat', 'klasik', 'bioskop'])
+const FRAME_IDS = new Set(['origin', 'cute-animal', 'desain-tanpa-judul'])
 
 interface StoredSession {
   id: string
@@ -26,59 +24,16 @@ class HttpError extends Error {
   }
 }
 
-function dataDirectory(): string {
-  return path.resolve(process.cwd(), '.snapbooth-data')
-}
-
-function sessionPath(id: string): string {
-  return path.join(dataDirectory(), `${id}.json`)
-}
-
-function imagePath(id: string): string {
-  return path.join(dataDirectory(), `${id}.png`)
-}
-
 function makeId(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
   const bytes = randomBytes(10)
   return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join('')
 }
 
-async function ensureDirectory(): Promise<void> {
-  await mkdir(dataDirectory(), { recursive: true })
-}
-
-async function cleanupExpired(): Promise<void> {
-  try {
-    const entries = await readdir(dataDirectory())
-    const now = Date.now()
-    await Promise.all(
-      entries
-        .filter((entry) => entry.endsWith('.json'))
-        .map(async (entry) => {
-          try {
-            const raw = await readFile(path.join(dataDirectory(), entry), 'utf8')
-            const parsed = JSON.parse(raw) as StoredSession
-            if (new Date(parsed.expiresAt).getTime() > now) return
-            await Promise.all([
-              unlink(path.join(dataDirectory(), entry)).catch(() => undefined),
-              unlink(path.join(dataDirectory(), `${parsed.id}.png`)).catch(() => undefined),
-            ])
-          } catch {
-            // A malformed or already-removed session must not block the API.
-          }
-        }),
-    )
-  } catch {
-    // The directory may not exist yet on first request.
-  }
-}
-
 function readBody(request: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
     let size = 0
-
     request.on('data', (chunk: Buffer) => {
       size += chunk.length
       if (size > MAX_BODY_BYTES) {
@@ -102,190 +57,125 @@ function sendJson(response: ServerResponse, status: number, body: unknown): void
   response.end(payload)
 }
 
-function localAddress(): string | null {
-  const interfaces = networkInterfaces()
-  const candidates: string[] = []
-
-  for (const addresses of Object.values(interfaces)) {
-    for (const address of addresses ?? []) {
-      if (address.family === 'IPv4' && !address.internal) {
-        candidates.push(address.address)
-      }
-    }
-  }
-
-  return candidates.find((address) => address.startsWith('192.168.')) ?? candidates[0] ?? null
+function publicBase(request: IncomingMessage): string {
+  const configured = process.env.SNAPBOOTH_PUBLIC_URL || process.env.VITE_PUBLIC_URL
+  if (configured) return configured.replace(/\/$/, '')
+  const forwardedProto = request.headers['x-forwarded-proto']
+  const protocol = typeof forwardedProto === 'string' ? forwardedProto.split(',')[0] : 'http'
+  const forwardedHost = request.headers['x-forwarded-host']
+  const host = typeof forwardedHost === 'string' ? forwardedHost.split(',')[0] : request.headers.host ?? 'localhost:5173'
+  return `${protocol}://${host}`
 }
 
-function publicBase(request: IncomingMessage, configuredUrl?: string): string {
-  if (configuredUrl) return configuredUrl.replace(/\/$/, '')
-
-  const forwarded = request.headers['x-forwarded-proto']
-  const protocol = typeof forwarded === 'string' ? forwarded.split(',')[0] : 'http'
-  const hostHeader = request.headers.host ?? 'localhost:5173'
-  const match = /^([^:]+)(:\d+)?$/.exec(hostHeader)
-
-  if (!match) return `${protocol}://${hostHeader}`
-
-  const [, hostname, port] = match
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
-    const lan = localAddress()
-    if (lan) return `${protocol}://${lan}${port ?? ''}`
+function configureCloudinary(): void {
+  if (process.env.CLOUDINARY_URL) {
+    cloudinary.config({ cloudinary_url: process.env.CLOUDINARY_URL, secure: true })
+    return
   }
-
-  return `${protocol}://${hostHeader}`
+  const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+    throw new HttpError(500, 'Atur CLOUDINARY_URL atau CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, dan CLOUDINARY_API_SECRET di .env')
+  }
+  cloudinary.config({ cloud_name: CLOUDINARY_CLOUD_NAME, api_key: CLOUDINARY_API_KEY, api_secret: CLOUDINARY_API_SECRET, secure: true })
 }
 
-async function createSession(request: IncomingMessage): Promise<{ id: string; frameId: string; createdAt: string; expiresAt: string }> {
+async function createSession(request: IncomingMessage): Promise<StoredSession & { shareUrl: string; imageUrl: string }> {
   const raw = await readBody(request)
   let payload: unknown
-
   try {
     payload = JSON.parse(raw)
   } catch {
     throw new HttpError(400, 'JSON tidak valid')
   }
-
-  if (!payload || typeof payload !== 'object') {
-    throw new HttpError(400, 'Permintaan tidak valid')
-  }
+  if (!payload || typeof payload !== 'object') throw new HttpError(400, 'Permintaan tidak valid')
 
   const body = payload as Record<string, unknown>
   const image = typeof body.image === 'string' ? body.image : ''
   const frameId = typeof body.frameId === 'string' && FRAME_IDS.has(body.frameId) ? body.frameId : null
-
-  if (!frameId) {
-    throw new HttpError(400, 'Frame tidak valid')
-  }
-
   const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(image)
-  if (!match) {
-    throw new HttpError(400, 'File harus berupa PNG')
-  }
+  if (!frameId) throw new HttpError(400, 'Frame tidak valid')
+  if (!match) throw new HttpError(400, 'File harus berupa PNG')
 
   const buffer = Buffer.from(match[1], 'base64')
-  if (buffer.length > MAX_IMAGE_BYTES) {
-    throw new HttpError(413, 'Ukuran strip maksimal 12 MB')
-  }
+  if (buffer.length > MAX_IMAGE_BYTES) throw new HttpError(413, 'Ukuran strip maksimal 12 MB')
+  if (buffer.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') throw new HttpError(400, 'Isi file bukan PNG yang valid')
 
-  const pngSignature = buffer.subarray(0, 8).toString('hex')
-  if (pngSignature !== '89504e470d0a1a0a') {
-    throw new HttpError(400, 'Isi file bukan PNG yang valid')
-  }
-
+  configureCloudinary()
   const id = makeId()
   const createdAt = new Date()
   const expiresAt = new Date(createdAt.getTime() + EXPIRY_MS).toISOString()
-  const session: StoredSession = {
-    id,
-    frameId,
-    createdAt: createdAt.toISOString(),
-    expiresAt,
+  await cloudinary.uploader.upload(image, {
+    resource_type: 'image', type: 'authenticated', public_id: `snapbooth/strips/${id}`,
+    overwrite: false, format: 'png', tags: ['snapbooth-expiring', `expires-${Math.floor(new Date(expiresAt).getTime() / 1000)}`],
+    context: { frameId, expiresAt },
+  })
+  return {
+    id, frameId, createdAt: createdAt.toISOString(), expiresAt,
+    shareUrl: `${publicBase(request)}/s/${id}`,
+    imageUrl: cloudinary.utils.private_download_url(`snapbooth/strips/${id}`, 'png', {
+      resource_type: 'image', type: 'authenticated', expires_at: Math.floor(Date.now() / 1000) + 3600,
+    }),
   }
-
-  await ensureDirectory()
-  await writeFile(imagePath(id), buffer)
-  await writeFile(sessionPath(id), JSON.stringify(session), 'utf8')
-
-  return session
 }
 
 async function readSession(id: string): Promise<StoredSession> {
   try {
-    const raw = await readFile(sessionPath(id), 'utf8')
-    return JSON.parse(raw) as StoredSession
-  } catch {
-    throw new HttpError(404, 'Sesi tidak ditemukan')
+    configureCloudinary()
+    const resource = await cloudinary.api.resource(`snapbooth/strips/${id}`, {
+      resource_type: 'image', type: 'authenticated', context: true,
+    })
+    const context = resource.context?.custom ?? {}
+    return {
+      id,
+      frameId: typeof context.frameId === 'string' ? context.frameId : 'origin',
+      createdAt: resource.created_at,
+      expiresAt: typeof context.expiresAt === 'string' ? context.expiresAt : '',
+    }
+  } catch (caught) {
+    const error = caught as { http_code?: number }
+    if (error.http_code === 404) throw new HttpError(404, 'Sesi tidak ditemukan')
+    throw caught
   }
 }
 
-async function sendImage(request: IncomingMessage, response: ServerResponse, id: string): Promise<void> {
-  const session = await readSession(id)
-
-  if (new Date(session.expiresAt).getTime() <= Date.now()) {
-    await Promise.all([
-      unlink(sessionPath(id)).catch(() => undefined),
-      unlink(imagePath(id)).catch(() => undefined),
-    ])
-    throw new HttpError(410, 'Strip sudah kedaluwarsa')
-  }
-
-  const file = await readFile(imagePath(id)).catch(() => {
-    throw new HttpError(404, 'File strip tidak ditemukan')
-  })
-
-  response.statusCode = 200
-  response.setHeader('Content-Type', 'image/png')
-  response.setHeader('Content-Length', file.length)
-  response.setHeader('Content-Disposition', `inline; filename="snapbooth-${id}.png"`)
-  response.setHeader('Cache-Control', 'private, max-age=3600')
-  response.end(request.method === 'HEAD' ? undefined : file)
-}
-
-function createHandler(configuredUrl?: string) {
+function createHandler() {
   return async (request: IncomingMessage, response: ServerResponse, next: (error?: unknown) => void): Promise<void> => {
     const pathname = new URL(request.url ?? '/', 'http://snapbooth.local').pathname
-
-    if (!pathname.startsWith('/api/')) {
-      next()
-      return
-    }
-
+    if (!pathname.startsWith('/api/')) return next()
     try {
-      void cleanupExpired()
-
       if (pathname === '/api/sessions' && request.method === 'POST') {
-        const session = await createSession(request)
-        const base = publicBase(request, configuredUrl)
-        sendJson(response, 201, {
-          ...session,
-          shareUrl: `${base}/s/${session.id}`,
-          imageUrl: `/api/strips/${session.id}.png`,
-        })
+        sendJson(response, 201, await createSession(request))
         return
       }
-
-      const sessionMatch = /^\/api\/sessions\/([A-Za-z0-9]{10})$/.exec(pathname)
-      if (sessionMatch) {
-        if (request.method !== 'GET') throw new HttpError(405, 'Metode tidak didukung')
-        const session = await readSession(sessionMatch[1])
-        if (new Date(session.expiresAt).getTime() <= Date.now()) {
+      const match = /^\/api\/sessions\/([A-Za-z0-9]{10})$/.exec(pathname)
+      if (match && request.method === 'GET') {
+        const session = await readSession(match[1])
+        if (!session.expiresAt || new Date(session.expiresAt).getTime() <= Date.now()) {
           throw new HttpError(410, 'Strip sudah kedaluwarsa')
         }
         sendJson(response, 200, {
           ...session,
-          filePath: `/api/strips/${session.id}.png`,
+          imageUrl: cloudinary.utils.private_download_url(`snapbooth/strips/${session.id}`, 'png', {
+            resource_type: 'image', type: 'authenticated', expires_at: Math.floor(Date.now() / 1000) + 3600,
+          }),
         })
         return
       }
-
-      const imageMatch = /^\/api\/strips\/([A-Za-z0-9]{10})\.png$/.exec(pathname)
-      if (imageMatch) {
-        if (request.method !== 'GET' && request.method !== 'HEAD') {
-          throw new HttpError(405, 'Metode tidak didukung')
-        }
-        await sendImage(request, response, imageMatch[1])
-        return
-      }
-
+      if (match) throw new HttpError(405, 'Metode tidak didukung')
       throw new HttpError(404, 'Endpoint tidak ditemukan')
     } catch (caught) {
-      const status = caught instanceof HttpError ? caught.status : 500
-      const message = caught instanceof Error ? caught.message : 'Terjadi kesalahan pada storage lokal'
-      if (status === 500) console.error('[snapbooth] local storage error:', caught)
-      sendJson(response, status, { error: message })
+      const error = caught as { status?: number; http_code?: number; message?: string }
+      const status = error instanceof HttpError ? error.status : error.http_code === 404 ? 404 : 502
+      console.error('[snapbooth] Cloudinary API failed:', error.message ?? caught)
+      sendJson(response, status, { error: error.message ?? 'Cloudinary request failed' })
     }
   }
 }
 
-export function snapboothLocalApi(configuredUrl?: string): Plugin {
+export function snapboothLocalApi(): Plugin {
   return {
     name: 'snapbooth-local-api',
-    configureServer(server) {
-      server.middlewares.use(createHandler(configuredUrl))
-    },
-    configurePreviewServer(server) {
-      server.middlewares.use(createHandler(configuredUrl))
-    },
+    configureServer(server) { server.middlewares.use(createHandler()) },
+    configurePreviewServer(server) { server.middlewares.use(createHandler()) },
   }
 }

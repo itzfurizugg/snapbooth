@@ -1,37 +1,5 @@
 import type { ReactNode } from 'react'
-
-interface ProcessingViewProps {
-  stage: number
-  content: ReactNode
-}
-
-const STAGES = ['MERAKIT STRIP', 'MENGUNGGAH FILE', 'MEMBUAT LINK & QR'] as const
-
-export function ProcessingView({ stage, content }: ProcessingViewProps) {
-  const progress = ((stage + 1) / STAGES.length) * 100
-
-  return (
-    <section className="processing-view">
-      <div className="processing-box">
-        <span className="processing-kicker">MEMPROSES SESI</span>
-        <ol className="process-stage-list">
-          {STAGES.map((label, index) => {
-            const state = index < stage ? 'done' : index === stage ? 'active' : 'pending'
-            return (
-              <li key={label} className={`process-stage process-stage--${state}`}>
-                <span className="process-stage__index" aria-hidden="true">
-                  {index < stage ? 'OK' : String(index + 1).padStart(2, '0')}
-                </span>
-                <span>{label}</span>
-              </li>
-            )
-          })}
-        </ol>
-        <div className="process-bar" aria-hidden="true">
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        <div className="process-note">{content}</div>
-      </div>
-    </section>
-  )
+const STAGES = ['Merakit strip', 'Mengunggah file', 'Membuat tautan dan QR'] as const
+export function ProcessingView({ stage, content }: { stage: number; content: ReactNode }) {
+  return <section className="workflow-page processing-page"><header className="processing-heading"><span className="eyebrow">Snapbooth / proses</span><h1>Menyiapkan strip</h1><p>Foto mentah tidak disimpan. Strip sedang diproses.</p></header><div className="processing-layout"><ol className="process-list">{STAGES.map((label, index) => <li key={label} data-state={index < stage ? 'done' : index === stage ? 'active' : 'pending'}><span>{index < stage ? '✓' : `0${index + 1}`}</span>{label}</li>)}</ol><div className="process-content">{content}</div><div className="process-progress" aria-label={`Tahap ${Math.min(stage + 1, STAGES.length)} dari ${STAGES.length}`}><span style={{ width: `${Math.min(((stage + 1) / STAGES.length) * 100, 100)}%` }}/></div></div></section>
 }

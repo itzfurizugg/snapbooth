@@ -4,10 +4,10 @@ import { snapboothLocalApi } from './server/localApi.ts'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const publicUrl = env.SNAPBOOTH_PUBLIC_URL || env.VITE_PUBLIC_URL || undefined
+  Object.assign(process.env, env)
 
   return {
-    plugins: [react(), snapboothLocalApi(publicUrl)],
+    plugins: [react(), snapboothLocalApi()],
     server: {
       host: true,
       port: 5173,

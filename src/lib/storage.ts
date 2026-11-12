@@ -31,7 +31,7 @@ async function saveWithCloudinary(imageDataUrl: string, frameId: FrameId): Promi
     shareUrl: result.shareUrl,
     imageUrl: result.imageUrl,
     expiresAt: result.expiresAt,
-    frameId: result.frameId === 'klasik' || result.frameId === 'bioskop' ? result.frameId : frameId,
+    frameId,
   }
 }
 
@@ -67,7 +67,7 @@ export async function fetchSharedStrip(id: string): Promise<FetchResult> {
       id,
       imageUrl: result.imageUrl,
       expiresAt: result.expiresAt,
-      frameId: result.frameId === 'klasik' || result.frameId === 'bioskop' ? result.frameId : 'kilat',
+      frameId: typeof result.frameId === 'string' ? result.frameId : 'origin',
       createdAt: typeof result.createdAt === 'string' ? result.createdAt : undefined,
     },
   }

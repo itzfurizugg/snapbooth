@@ -6,7 +6,7 @@ const ID_LENGTH = 16
 const MAX_BODY_BYTES = 16 * 1024 * 1024
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
-const VALID_FRAMES = new Set(['kilat', 'klasik', 'bioskop'])
+const VALID_FRAMES = new Set(['origin', 'cute-animal', 'desain-tanpa-judul'])
 
 function configureCloudinary(): void {
   const cloudinaryUrl = process.env.CLOUDINARY_URL
@@ -62,7 +62,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
   const payload = body as Record<string, unknown>
   const frameId = typeof payload.frameId === 'string' && VALID_FRAMES.has(payload.frameId) ? payload.frameId : null
   const image = typeof payload.image === 'string' ? payload.image : ''
-  const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(image)
+  const match = /^data:image\/png;base64,([A-Za-z0-9+/=\r\n]+)$/.exec(image)
 
   if (!frameId || !match) {
     sendError(response, 400, 'Data strip atau frame tidak valid')

@@ -48,7 +48,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const resource = await cloudinary.api.resource(publicId, { resource_type: 'image', type: 'authenticated', context: true })
     const context = resource.context?.custom ?? {}
     const expiresAt = typeof context.expiresAt === 'string' ? context.expiresAt : ''
-    const frameId = typeof context.frameId === 'string' ? context.frameId : 'kilat'
+    const frameId = typeof context.frameId === 'string' ? context.frameId : 'origin'
 
     if (!expiresAt || new Date(expiresAt).getTime() <= Date.now()) {
       if (expiresAt) {
