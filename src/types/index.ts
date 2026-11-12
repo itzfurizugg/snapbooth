@@ -1,4 +1,18 @@
-export type FrameId = 'kilat' | 'klasik' | 'bioskop'
+export type FrameId = string
+
+export interface EditableTextConfig {
+  label: string
+  placeholder: string
+  maxLength: number
+  x: number
+  y: number
+  width: number
+  height: number
+  align: 'left' | 'center' | 'right'
+  fontFamily: string
+  fontSize: number
+  color: string
+}
 
 export interface SlotRect {
   x: number
@@ -21,9 +35,14 @@ export interface FrameConfig {
   index: string
   description: string
   note: string
+  author?: string
   slotCount: number
   width: number
   height: number
+  image: string
+  virtualBackground?: boolean
+  backgrounds?: string[]
+  editableText?: EditableTextConfig
   palette: FramePalette
   slots: SlotRect[]
   sampleImages: string[]

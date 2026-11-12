@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, Download, ExternalLink, RefreshCw, Smartphone } from 'lucide-react'
+import { Check, Copy, ExternalLink } from 'lucide-react'
 import type { SavedStrip } from '../types'
 import { generateQrDataUrl } from '../lib/qr'
 import { formatRemaining } from '../lib/format'
-import { Button, ButtonLink } from './Button'
+import { ButtonLink } from './Button'
 import { StepHeader } from './StepHeader'
 
 interface QRViewProps {
   strip: SavedStrip
-  onRestart: () => void
 }
 
-export function QRView({ strip, onRestart }: QRViewProps) {
+export function QRView({ strip }: QRViewProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [qrError, setQrError] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -52,70 +51,46 @@ export function QRView({ strip, onRestart }: QRViewProps) {
     <section className="page-section">
       <StepHeader
         index="04"
-        title="BAGIKAN STRIP"
-        lede="Scan kode di ponsel untuk membuka halaman unduhan. Link aktif selama 24 jam sejak strip dibuat."
-        meta={`ID ${strip.id.toUpperCase()}`}
-        action={
-          <Button variant="ghost" icon={RefreshCw} onClick={onRestart}>
-            SESI BARU
-          </Button>
-        }
+        title="Bagikan strip"
+        lede="Pindai QR dengan ponsel untuk mengunduh strip. Link aktif 24 jam."
       />
 
       <div className="qr-layout">
         <div className="qr-panel" aria-live="polite">
-          <span className="qr-caption">SCAN UNTUK SIMPAN</span>
           <div className="qr-frame">
             {qrDataUrl && !qrError ? (
               <img src={qrDataUrl} alt="QR Code menuju halaman unduhan strip" width={1024} height={1024} />
             ) : (
-              <div className="qr-error">
-                <Smartphone aria-hidden="true" size={40} strokeWidth={1.75} />
+              <div className="qr-error" role={qrError ? 'alert' : 'status'}>
                 <span>{qrError ? 'QR gagal dibuat' : 'Membuat QR…'}</span>
               </div>
             )}
           </div>
           <div className="qr-meta">
-            <span>SCAN DENGAN KAMERA PONSEL</span>
+            <span>Link berlaku</span>
             <strong>{remaining}</strong>
           </div>
-          <p className="qr-note">
-            File tersimpan di Cloudinary. Link strip aktif 24 jam; URL gambar bertanda tangan berlaku 1 jam.
-          </p>
         </div>
 
         <div className="qr-details">
           <div className="side-block">
-            <span className="side-label">HASIL STRIP</span>
             <div className="qr-strip-wrap">
               <img src={strip.imageUrl} alt="Strip fotomu yang sudah jadi" className="qr-strip-img" />
             </div>
           </div>
 
           <div className="side-block">
-            <span className="side-label">TAUTAN</span>
             <code className="qr-link">{strip.shareUrl}</code>
             <div className="qr-actions">
               <ButtonLink href={strip.shareUrl} target="_blank" rel="noreferrer" icon={ExternalLink} iconSide="left">
-                BUKA HALAMAN
+                Buka halaman unduhan
               </ButtonLink>
-              <Button variant="ghost" icon={copied ? Check : Copy} onClick={() => void copyLink()}>
-                {copied ? 'TERSALIN' : 'SALIN LINK'}
-              </Button>
-              <a href={strip.imageUrl} download={`snapbooth-${strip.id}.png`} className="btn btn--paper btn--md">
-                <Download aria-hidden="true" size={18} strokeWidth={2} />
-                <span>UNDUH DI SINI</span>
-              </a>
+              <ButtonLink href="#salin" onClick={(event) => { event.preventDefault(); void copyLink() }} icon={copied ? Check : Copy} iconSide="left">
+                {copied ? 'Tautan tersalin' : 'Salin tautan'}
+              </ButtonLink>
             </div>
           </div>
 
-          <div className="side-block side-block--yellow">
-            <strong>Strip ini kedaluwarsa dalam {remaining}.</strong>
-            <p>Link aktif 24 jam. Simpan strip sekarang; file dapat tetap tersimpan di Cloudinary setelah link kedaluwarsa.</p>
-            <Button variant="dark" onClick={onRestart}>
-              MULAI SESI BARU
-            </Button>
-          </div>
         </div>
       </div>
     </section>

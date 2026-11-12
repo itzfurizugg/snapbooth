@@ -138,13 +138,19 @@ export function useCamera(): UseCameraResult {
       }
 
       streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play().catch(() => undefined)
+      if (!videoRef.current) {
+        stream.getTracks().forEach((track) => track.stop())
+        streamRef.current = null
+        throw new Error('Pratinjau kamera tidak tersedia')
       }
+      videoRef.current.srcObject = stream
+      await videoRef.current.play()
       setStatus('ready')
     } catch (caught) {
       if (requestRef.current !== request) return
+      streamRef.current?.getTracks().forEach((track) => track.stop())
+      streamRef.current = null
+      if (videoRef.current) videoRef.current.srcObject = null
       setError(mapCameraError(caught))
       setStatus('error')
     }

@@ -36,9 +36,6 @@ async function saveWithCloudinary(imageDataUrl: string, frameId: FrameId): Promi
 }
 
 export async function saveStrip(imageDataUrl: string, frameId: FrameId): Promise<SavedStrip> {
-  if (import.meta.env.DEV) {
-    throw new Error('Local API dev hanya untuk localhost. Jalankan `vercel dev` agar uji Cloudinary seperti production.')
-  }
   return saveWithCloudinary(imageDataUrl, frameId)
 }
 

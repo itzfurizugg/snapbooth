@@ -16,6 +16,7 @@ interface ReviewStageProps {
   onBack: () => void
   onSubmit: () => void
   code: string
+  background: string | null
 }
 
 export function ReviewStage({
@@ -28,35 +29,48 @@ export function ReviewStage({
   onBack,
   onSubmit,
   code,
+  background,
 }: ReviewStageProps) {
   const frame = getFrame(frameId)
-  const [renderResult, setRenderResult] = useState<{ key: string; preview: string | null; error: string | null } | null>(null)
+  const [renderResult, setRenderResult] = useState<{ key: string; preview: string | null; error: string | null; notice: string | null } | null>(null)
   const renderKey = `${frameId}-${mirror}-${code}-${photos.length}-${photos.map((photo) => photo.slice(0, 24)).join('|')}`
   const rendering = renderResult?.key !== renderKey
   const preview = rendering ? null : renderResult.preview
   const error = rendering ? null : renderResult.error
+  const segmentationNotice = rendering ? null : renderResult.notice
   const dateLabel = formatStripDate()
 
   useEffect(() => {
     let cancelled = false
-    renderStrip(frameId, photos, { mirror, code, date: new Date() })
-      .then((dataUrl) => {
-        if (!cancelled) setRenderResult({ key: renderKey, preview: dataUrl, error: null })
-      })
-      .catch((caught: unknown) => {
-        if (!cancelled) {
-          setRenderResult({
-            key: renderKey,
-            preview: null,
-            error: caught instanceof Error ? caught.message : 'Gagal merender strip',
-          })
+    const render = async () => {
+      let processedPhotos = photos
+      let segmentationFailed = false
+      if (background) {
+        try {
+          const { segmentPerson } = await import('../lib/segment')
+          processedPhotos = await Promise.all(photos.map((photo) => segmentPerson(photo, background)))
+        } catch {
+          segmentationFailed = true
         }
+      }
+      const dataUrl = await renderStrip(frameId, processedPhotos, {
+        mirror,
+        code,
+        date: new Date(),
+        backgrounds: background && !segmentationFailed ? photos.map(() => background) : [],
       })
-
-    return () => {
-      cancelled = true
+      if (!cancelled) {
+        setRenderResult({ key: renderKey, preview: dataUrl, error: null, notice: segmentationFailed ? 'Pemisahan latar gagal. Pratinjau memakai foto asli.' : null })
+      }
     }
-  }, [frameId, photos, mirror, code, renderKey])
+
+    void render().catch((caught: unknown) => {
+      if (!cancelled) {
+        setRenderResult({ key: renderKey, preview: null, error: caught instanceof Error ? caught.message : 'Gagal merender strip', notice: null })
+      }
+    })
+    return () => { cancelled = true }
+  }, [frameId, photos, mirror, code, renderKey, background])
 
   return (
     <section className="page-section">
@@ -95,6 +109,8 @@ export function ReviewStage({
         </div>
 
         <aside className="review-side">
+          {segmentationNotice && <p className="side-note" role="status">{segmentationNotice}</p>}
+          {background && !segmentationNotice && <p className="side-note">Foto dan viewfinder memakai latar pilihan. Pemrosesan berjalan di perangkat ini.</p>}
           <div className="side-block">
             <span className="side-label">SLOT FOTO</span>
             <ul className="shot-list">

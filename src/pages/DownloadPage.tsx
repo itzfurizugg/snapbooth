@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+﻿import { useCallback, useEffect, useState } from 'react'
 import { ArrowRight, CheckCircle2, Download, RefreshCw, TimerOff } from 'lucide-react'
 import type { SessionState } from '../types'
 import { fetchSharedStrip } from '../lib/storage'
@@ -62,7 +62,7 @@ export function DownloadPage({ id }: DownloadPageProps) {
       {session.status === 'loading' && (
         <div className="download-loading">
           <div className="skeleton skeleton--strip" role="status" aria-label="Memuat strip">
-            <span>MEMUAT…</span>
+            <span>MEMUATΓÇª</span>
           </div>
           <div className="skeleton skeleton--copy" aria-hidden="true" />
         </div>

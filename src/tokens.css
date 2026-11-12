@@ -1,19 +1,19 @@
 :root {
-  --ink: #161512;
-  --ink-soft: #302f29;
-  --paper: #f7f4ee;
-  --paper-deep: #efe9df;
-  --line: #d1cbc0;
-  --muted: #77746a;
-  --signal: #1d5c45;
-  --signal-deep: #143e31;
-  --signal-wash: #dce8dc;
-  --danger: #ad3026;
-  --warning: #f0e83c;
+  --ink: #000000;
+  --ink-soft: #202020;
+  --paper: #ffffff;
+  --paper-deep: #f0f0f0;
+  --line: #000000;
+  --muted: #555555;
+  --signal: #0000cc;
+  --signal-deep: #000099;
+  --signal-wash: #eeeeee;
+  --danger: #cc0000;
+  --warning: #ffff00;
   --font-mono: 'Courier New', Courier, monospace;
-  --font-ui: Arial, Helvetica, sans-serif;
+  --font-ui: 'Courier New', Courier, monospace;
   --page: 1280px;
   --side: 24px;
-  --duration: 180ms;
-  --ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+  --duration: 200ms;
+  --ease: ease-out;
 }

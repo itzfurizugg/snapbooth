@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { FrameId } from '../types'
 import { FRAMES, getFrame } from '../lib/frames'
 import { Button } from './Button'
@@ -38,7 +38,9 @@ export function FramePicker({ selected, onSelect, onBack, onNext }: FramePickerP
           </span>
         </div>
 
-        <div className="frame-options" role="radiogroup" aria-label="Pilihan template frame">
+        <div className="frame-carousel">
+          <button type="button" className="carousel-arrow" aria-label="Frame sebelumnya" onClick={() => onSelect(FRAMES[(FRAMES.findIndex((item) => item.id === selected) - 1 + FRAMES.length) % FRAMES.length].id)}><ChevronLeft /></button>
+          <div className="frame-options" role="radiogroup" aria-label="Pilihan template frame">
           {FRAMES.map((frame) => {
             const isSelected = frame.id === selected
             return (
@@ -67,16 +69,15 @@ export function FramePicker({ selected, onSelect, onBack, onNext }: FramePickerP
             )
           })}
 
-          <p className="frame-hint">
-            Frame berpola sama dipakai semua sesi. Ingin frame berbeda untuk tiap sesi? Itu ada di versi berikutnya.
-          </p>
+          </div>
+          <button type="button" className="carousel-arrow" aria-label="Frame berikutnya" onClick={() => onSelect(FRAMES[(FRAMES.findIndex((item) => item.id === selected) + 1) % FRAMES.length].id)}><ChevronRight /></button>
         </div>
       </div>
 
+
       <div className="picker-actions">
-        <span className="picker-facts">4 FOTO / COUNTDOWN 3 DETIK / LINK 24 JAM</span>
         <Button size="lg" icon={ArrowRight} onClick={onNext}>
-          LANJUT KE KAMERA
+          Lanjut ke kamera
         </Button>
       </div>
     </section>

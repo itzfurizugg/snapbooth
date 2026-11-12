@@ -13,12 +13,13 @@ interface CameraStageProps {
   frameId: FrameConfig['id']
   existing: Array<string | null>
   retakeIndex: number | null
+  background: string | null
   onComplete: (photos: string[]) => void
   onBack: () => void
   onRestart: () => void
 }
 
-export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack, onRestart }: CameraStageProps) {
+export function CameraStage({ frameId, existing, retakeIndex, background, onComplete, onBack, onRestart }: CameraStageProps) {
   const frame = getFrame(frameId)
   const { videoRef, status, error, facing, start, stop, flip } = useCamera()
   const [photos, setPhotos] = useState<Array<string | null>>(existing)
@@ -26,6 +27,10 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
   const [countdown, setCountdown] = useState<number | null>(null)
   const [flash, setFlash] = useState(false)
   const [fatalError, setFatalError] = useState<string | null>(null)
+  const [backgroundError, setBackgroundError] = useState<string | null>(null)
+  const [backgroundLoading, setBackgroundLoading] = useState(false)
+  const [backgroundReady, setBackgroundReady] = useState(false)
+  const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const photosRef = useRef(photos)
   const videoRefLatest = useRef(videoRef)
@@ -47,10 +52,37 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
     }
   }, [])
 
+  useEffect(() => {
+    let stopPreview: (() => void) | undefined
+    let cancelled = false
+    setBackgroundError(null)
+    setBackgroundReady(!background)
+    setBackgroundLoading(Boolean(background))
+    if (background && videoRef.current && backgroundCanvasRef.current) {
+      void import('../lib/segment').then(({ startBackgroundPreview }) =>
+        startBackgroundPreview(videoRef.current!, backgroundCanvasRef.current!, background),
+      ).then((stop) => {
+        if (cancelled) stop()
+        else {
+          stopPreview = stop
+          setBackgroundReady(true)
+          setBackgroundLoading(false)
+        }
+      }).catch(() => {
+        if (!cancelled) {
+          setBackgroundError('Virtual background gagal dimuat. Viewfinder memakai kamera asli.')
+          setBackgroundReady(true)
+          setBackgroundLoading(false)
+        }
+      })
+    }
+    return () => { cancelled = true; stopPreview?.() }
+  }, [background, status])
+
   const targets = retakeIndex !== null ? [retakeIndex] : frame.slots.map((_, index) => index)
 
   async function runCapture() {
-    if (capturingRef.current || status !== 'ready' || !videoRef.current) return
+    if (capturingRef.current || status !== 'ready' || !videoRef.current || !backgroundReady) return
     capturingRef.current = true
     aborted.current = false
     setCapturing(true)
@@ -72,7 +104,10 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
 
         const activeVideo = videoRefLatest.current.current
         if (!activeVideo) throw new Error('Kamera belum siap')
-        const data = captureVideoFrame(activeVideo)
+        const backgroundCanvas = backgroundCanvasRef.current
+        const data = background && backgroundCanvas?.width && backgroundCanvas.height
+          ? backgroundCanvas.toDataURL('image/jpeg', 0.92)
+          : captureVideoFrame(activeVideo)
         const next = [...photosRef.current]
         next[index] = data
         photosRef.current = next
@@ -142,9 +177,11 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
             muted
             playsInline
             autoPlay
-            className="camera-video"
+            className={`camera-video ${background ? 'camera-video--background' : ''}`}
             aria-label="Pratinjau kamera langsung"
           />
+          {background && <canvas ref={backgroundCanvasRef} className="camera-background-video" aria-label="Pratinjau kamera dengan latar virtual" />}
+          {backgroundLoading && <p className="camera-background-error" role="status">Memuat segmentasi latar virtual…</p>}
 
           <div className="camera-grid" aria-hidden="true" />
           <div className="camera-cross camera-cross--tl" aria-hidden="true" />
@@ -152,6 +189,7 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
           <div className="camera-cross camera-cross--bl" aria-hidden="true" />
           <div className="camera-cross camera-cross--br" aria-hidden="true" />
 
+          {backgroundError && <p className="camera-background-error" role="status">{backgroundError}</p>}
           <div className="camera-topbar" aria-live="polite">
             <span className={`cam-label ${ready ? 'cam-label--live' : ''}`}>
               <span className="cam-dot" aria-hidden="true" />
@@ -203,11 +241,11 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
               size="lg"
               icon={Camera}
               onClick={() => void runCapture()}
-              disabled={!ready || busy}
+              disabled={!ready || busy || !backgroundReady}
               className="capture-button"
               aria-label={retakeIndex !== null ? 'Mulai retake foto' : 'Mulai mengambil foto'}
             >
-              {capturing ? 'MENJEPRET…' : retakeIndex !== null ? 'RETAKS LAH' : 'MULAI JEPRET'}
+              {capturing ? 'MENJEPRET…' : backgroundLoading ? 'MEMUAT LATAR…' : retakeIndex !== null ? 'RETAKS LAH' : 'MULAI JEPRET'}
             </Button>
             <span className="capture-hint" aria-hidden="true">
               [SPASI]
@@ -256,7 +294,7 @@ export function CameraStage({ frameId, existing, retakeIndex, onComplete, onBack
 
           <div className="side-block side-block--danger">
             <span className="side-label">ULANGI SEMUA</span>
-            <p className="side-note">Semua foto dihapus dan sesi berjalan dari awal.</p>
+            <p className="side-note">Semua foto dari sesi ini dibuang.</p>
             <Button variant="danger" onClick={onRestart}>
               BATALKAN &amp; ULANGI
             </Button>
