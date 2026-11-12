@@ -44,9 +44,11 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 function BoothApp() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<BoothStep>("intro");
+  const editorTest = import.meta.env.DEV && new URLSearchParams(window.location.search).has("editor-test");
+  const testPhotos = editorTest ? ["#FF7F11", "#ACBFA4", "#E2E8CE"].map((color, index) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="440"><rect width="100%" height="100%" fill="${color}"/><text x="320" y="230" text-anchor="middle" fill="#262626" font-family="sans-serif" font-size="42">FOTO ${index + 1}</text></svg>`)}`) : [];
+  const [step, setStep] = useState<BoothStep>(editorTest ? "review" : "intro");
   const [frameId, setFrameId] = useState<FrameId>(DEFAULT_FRAME_ID);
-  const [photos, setPhotos] = useState<Array<string | null>>([]);
+  const [photos, setPhotos] = useState<Array<string | null>>(testPhotos);
   const [retakeIndex, setRetakeIndex] = useState<number | null>(null);
   const [mirror, setMirror] = useState(false);
   const [background, setBackground] = useState<string | null>(null);
@@ -79,6 +81,12 @@ function BoothApp() {
 
   useEffect(() => {
     document.title = "Snapbooth — Photobooth di browser";
+    if (editorTest) {
+      setStripCode("TEST");
+      setStickers([]);
+      setFlowReady(true);
+      return;
+    }
     const savedFlow = sessionStorage.getItem("snapbooth-flow");
     if (savedFlow) {
       try {
@@ -96,13 +104,7 @@ function BoothApp() {
             flow.step,
           )
         ) {
-          setStep(
-            flow.step === "camera" ||
-              flow.step === "review" ||
-              flow.step === "processing"
-              ? "frames"
-              : flow.step,
-          );
+          setStep(flow.step);
           setFrameId(flow.frameId);
           setPhotos(flow.photos);
           setMirror(flow.mirror);
@@ -115,7 +117,7 @@ function BoothApp() {
       }
     }
     setFlowReady(true);
-  }, []);
+  }, [navigate, editorTest]);
 
   useEffect(() => {
     if (!flowReady) return;
@@ -153,6 +155,7 @@ function BoothApp() {
     stripCode,
     stickers,
     navigate,
+    editorTest,
   ]);
 
   function beginCamera() {

@@ -1,0 +1,50 @@
+- generic [ref=f16e3]:
+  - banner [ref=f16e4]:
+    - link "Snapbooth" [ref=f16e5] [cursor=pointer]:
+      - /url: /
+      - text: Snapbooth/
+  - main [ref=f16e6]:
+    - generic [ref=f16e7]:
+      - generic [ref=f16e8]:
+        - button "Kembali" [ref=f16e10] [cursor=pointer]
+        - generic [ref=f16e13]:
+          - heading "Periksa strip" [level=1] [ref=f16e14]
+          - paragraph [ref=f16e15]: Ambil ulang foto yang ingin diganti sebelum membuat hasil akhir.
+      - generic [ref=f16e16]:
+        - region "Pratinjau hasil strip" [ref=f16e17]:
+          - status [ref=f16e18]: Merender strip…
+        - complementary [ref=f16e19]:
+          - generic [ref=f16e20]:
+            - generic [ref=f16e21]:
+              - generic [ref=f16e22]: Foto dalam strip
+              - generic [ref=f16e23]: 3 foto
+            - generic [ref=f16e24]:
+              - generic [ref=f16e25]: "01"
+              - img "Foto ke-1" [ref=f16e26]
+              - button "Ambil ulang foto 1" [ref=f16e27] [cursor=pointer]: Ambil ulang
+            - generic [ref=f16e28]:
+              - generic [ref=f16e29]: "02"
+              - img "Foto ke-2" [ref=f16e30]
+              - button "Ambil ulang foto 2" [ref=f16e31] [cursor=pointer]: Ambil ulang
+            - generic [ref=f16e32]:
+              - generic [ref=f16e33]: "03"
+              - img "Foto ke-3" [ref=f16e34]
+              - button "Ambil ulang foto 3" [ref=f16e35] [cursor=pointer]: Ambil ulang
+          - switch "Cerminkan strip Balik arah foto hasil" [ref=f16e36] [cursor=pointer]:
+            - generic [ref=f16e37]:
+              - strong [ref=f16e38]: Cerminkan strip
+              - generic [ref=f16e39]: Balik arah foto hasil
+          - generic [ref=f16e42]:
+            - generic [ref=f16e43]:
+              - term [ref=f16e44]: Kode
+              - definition [ref=f16e45]: TEST
+            - generic [ref=f16e46]:
+              - term [ref=f16e47]: Tanggal
+              - definition [ref=f16e48]: 12 NOV 2026
+            - generic [ref=f16e49]:
+              - term [ref=f16e50]: Resolusi
+              - definition [ref=f16e51]: 480 × 970 px
+          - generic [ref=f16e52]:
+            - button "Buat strip dan QR" [disabled] [ref=f16e53]
+            - button "Buang foto dan mulai lagi" [ref=f16e58] [cursor=pointer]
+  - contentinfo [ref=f16e60]

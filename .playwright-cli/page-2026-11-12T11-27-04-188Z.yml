@@ -1,0 +1,65 @@
+- generic [ref=f9e3]:
+  - banner [ref=f9e4]:
+    - link "Snapbooth" [ref=f9e5] [cursor=pointer]:
+      - /url: /
+      - text: Snapbooth/
+  - main [ref=f9e6]:
+    - generic [ref=f9e7]:
+      - generic [ref=f9e8]:
+        - button "Kembali" [ref=f9e10] [cursor=pointer]
+        - generic [ref=f9e13]:
+          - heading "Periksa strip" [level=1] [ref=f9e14]
+          - paragraph [ref=f9e15]: Ambil ulang foto yang ingin diganti sebelum membuat hasil akhir.
+      - generic [ref=f9e16]:
+        - region "Pratinjau hasil strip" [ref=f9e17]:
+          - generic [ref=f9e61]:
+            - generic [ref=f9e68]:
+              - generic "Gaya teks" [ref=f9e69]:
+                - button "Ganti gaya font" [ref=f9e70] [cursor=pointer]
+                - button "Ganti latar teks" [ref=f9e73] [cursor=pointer]
+                - button "Ganti perataan teks" [ref=f9e77] [cursor=pointer]
+                - generic [ref=f9e79]:
+                  - 'button "Warna #262626" [ref=f9e80]'
+                  - 'button "Warna #E2E8CE" [ref=f9e81]'
+                  - 'button "Warna #FF7F11" [ref=f9e82]'
+                  - 'button "Warna #ACBFA4" [ref=f9e83]'
+              - button "Selesai" [ref=f9e84] [cursor=pointer]
+            - generic [ref=f9e66]:
+              - img "Pratinjau strip hasil foto" [ref=f9e67]
+              - textbox "Teks di strip" [active] [ref=f9e86]:
+                - /placeholder: Ketik di sini
+        - complementary [ref=f9e19]:
+          - generic [ref=f9e20]:
+            - generic [ref=f9e21]:
+              - generic [ref=f9e22]: Foto dalam strip
+              - generic [ref=f9e23]: 3 foto
+            - generic [ref=f9e24]:
+              - generic [ref=f9e25]: "01"
+              - img "Foto ke-1" [ref=f9e26]
+              - button "Ambil ulang foto 1" [ref=f9e27] [cursor=pointer]: Ambil ulang
+            - generic [ref=f9e28]:
+              - generic [ref=f9e29]: "02"
+              - img "Foto ke-2" [ref=f9e30]
+              - button "Ambil ulang foto 2" [ref=f9e31] [cursor=pointer]: Ambil ulang
+            - generic [ref=f9e32]:
+              - generic [ref=f9e33]: "03"
+              - img "Foto ke-3" [ref=f9e34]
+              - button "Ambil ulang foto 3" [ref=f9e35] [cursor=pointer]: Ambil ulang
+          - switch "Cerminkan strip Balik arah foto hasil" [ref=f9e36] [cursor=pointer]:
+            - generic [ref=f9e37]:
+              - strong [ref=f9e38]: Cerminkan strip
+              - generic [ref=f9e39]: Balik arah foto hasil
+          - generic [ref=f9e42]:
+            - generic [ref=f9e43]:
+              - term [ref=f9e44]: Kode
+              - definition [ref=f9e45]: TEST
+            - generic [ref=f9e46]:
+              - term [ref=f9e47]: Tanggal
+              - definition [ref=f9e48]: 12 NOV 2026
+            - generic [ref=f9e49]:
+              - term [ref=f9e50]: Resolusi
+              - definition [ref=f9e51]: 480 × 970 px
+          - generic [ref=f9e52]:
+            - button "Buat strip dan QR" [disabled] [ref=f9e53]
+            - button "Buang foto dan mulai lagi" [ref=f9e58] [cursor=pointer]
+  - contentinfo [ref=f9e60]

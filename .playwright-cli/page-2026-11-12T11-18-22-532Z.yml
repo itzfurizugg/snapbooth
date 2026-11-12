@@ -1,0 +1,50 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e4]:
+    - link "Snapbooth" [ref=f1e5] [cursor=pointer]:
+      - /url: /
+      - text: Snapbooth/
+  - main [ref=f1e6]:
+    - generic [ref=f1e7]:
+      - generic [ref=f1e8]:
+        - button "Kembali" [ref=f1e10] [cursor=pointer]
+        - generic [ref=f1e13]:
+          - heading "Periksa strip" [level=1] [ref=f1e14]
+          - paragraph [ref=f1e15]: Ambil ulang foto yang ingin diganti sebelum membuat hasil akhir.
+      - generic [ref=f1e16]:
+        - region "Pratinjau hasil strip" [ref=f1e17]:
+          - status [ref=f1e18]: Merender strip…
+        - complementary [ref=f1e19]:
+          - generic [ref=f1e20]:
+            - generic [ref=f1e21]:
+              - generic [ref=f1e22]: Foto dalam strip
+              - generic [ref=f1e23]: 3 foto
+            - generic [ref=f1e24]:
+              - generic [ref=f1e25]: "01"
+              - img "Foto ke-1" [ref=f1e26]
+              - button "Ambil ulang foto 1" [ref=f1e27] [cursor=pointer]: Ambil ulang
+            - generic [ref=f1e28]:
+              - generic [ref=f1e29]: "02"
+              - img "Foto ke-2" [ref=f1e30]
+              - button "Ambil ulang foto 2" [ref=f1e31] [cursor=pointer]: Ambil ulang
+            - generic [ref=f1e32]:
+              - generic [ref=f1e33]: "03"
+              - img "Foto ke-3" [ref=f1e34]
+              - button "Ambil ulang foto 3" [ref=f1e35] [cursor=pointer]: Ambil ulang
+          - switch "Cerminkan strip Balik arah foto hasil" [ref=f1e36] [cursor=pointer]:
+            - generic [ref=f1e37]:
+              - strong [ref=f1e38]: Cerminkan strip
+              - generic [ref=f1e39]: Balik arah foto hasil
+          - generic [ref=f1e42]:
+            - generic [ref=f1e43]:
+              - term [ref=f1e44]: Kode
+              - definition [ref=f1e45]: TEST
+            - generic [ref=f1e46]:
+              - term [ref=f1e47]: Tanggal
+              - definition [ref=f1e48]: 12 NOV 2026
+            - generic [ref=f1e49]:
+              - term [ref=f1e50]: Resolusi
+              - definition [ref=f1e51]: 480 × 970 px
+          - generic [ref=f1e52]:
+            - button "Buat strip dan QR" [disabled] [ref=f1e53]
+            - button "Buang foto dan mulai lagi" [ref=f1e58] [cursor=pointer]
+  - contentinfo [ref=f1e60]

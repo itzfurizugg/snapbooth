@@ -117,6 +117,7 @@ export async function renderStrip(
     }
   });
   ctx.drawImage(overlay, 0, 0, frame.width, frame.height);
+  await document.fonts.load('700 48px "Funnel Display"');
   await document.fonts.ready;
   for (const layer of options.stickers ?? []) drawTextLayer(ctx, layer, frame.width, frame.height);
   return canvas.toDataURL("image/png");
