@@ -6,7 +6,7 @@ import type { Plugin } from 'vite'
 const EXPIRY_MS = 24 * 60 * 60 * 1000
 const MAX_BODY_BYTES = 16 * 1024 * 1024
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024
-const FRAME_IDS = new Set(['origin', 'cute-animal', 'desain-tanpa-judul'])
+const FRAME_IDS = new Set(['classc', 'hypr', 'wav'])
 
 interface StoredSession {
   id: string
@@ -127,7 +127,7 @@ async function readSession(id: string): Promise<StoredSession> {
     const context = resource.context?.custom ?? {}
     return {
       id,
-      frameId: typeof context.frameId === 'string' ? context.frameId : 'origin',
+      frameId: typeof context.frameId === 'string' ? context.frameId : 'classc',
       createdAt: resource.created_at,
       expiresAt: typeof context.expiresAt === 'string' ? context.expiresAt : '',
     }

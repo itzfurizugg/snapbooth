@@ -1,1 +1,1 @@
-export const isSupabaseConfigured = false
+export const isSupabaseConfigured = false;

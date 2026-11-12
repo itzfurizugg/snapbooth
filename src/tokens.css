@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
-  --cream: #E2E8CE;
-  --sage: #ACBFA4;
+  --cream: #e2e8ce;
+  --sage: #acbfa4;
   --charcoal: #262626;
-  --orange: #FF7F11;
-  --orange-hover: #EB7410;
-  --surface: #EDF0E2;
-  --muted: #565B51;
-  --line: rgba(38, 38, 38, .2);
-  --danger: #923D32;
-  --font: 'Funnel Display', system-ui, sans-serif;
+  --orange: #ff7f11;
+  --orange-hover: #eb7410;
+  --surface: #edf0e2;
+  --muted: #565b51;
+  --line: rgba(38, 38, 38, 0.2);
+  --danger: #923d32;
+  --font: "Funnel Display", system-ui, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --space-1: 8px;
   --space-2: 16px;
@@ -19,7 +19,7 @@
   --space-6: 64px;
   --radius-sm: 4px;
   --radius: 8px;
-  --shadow: 0 2px 12px rgba(38, 38, 38, .06);
+  --shadow: 0 2px 12px rgba(38, 38, 38, 0.06);
   --ease: ease-out;
   --fast: 200ms;
   --enter: 420ms;

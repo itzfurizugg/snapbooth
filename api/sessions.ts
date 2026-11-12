@@ -6,7 +6,7 @@ const ID_LENGTH = 16
 const MAX_BODY_BYTES = 16 * 1024 * 1024
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
-const VALID_FRAMES = new Set(['origin', 'cute-animal', 'desain-tanpa-judul'])
+const VALID_FRAMES = new Set(['classc', 'hypr', 'wav'])
 
 function configureCloudinary(): void {
   const cloudinaryUrl = process.env.CLOUDINARY_URL
