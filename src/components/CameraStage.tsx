@@ -14,6 +14,46 @@ import { useCamera } from "../hooks/useCamera";
 import { Button } from "./Button";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+type Filter = "none" | "bw" | "newjeans" | "sketch";
+function applyFilter(ctx: CanvasRenderingContext2D, filter: Filter) {
+  if (filter === "bw") ctx.filter = "grayscale(1) contrast(1.12)";
+  else if (filter === "newjeans") ctx.filter = "grayscale(1) contrast(1.35) brightness(1.12)";
+  else if (filter === "sketch") ctx.filter = "grayscale(1) contrast(2.4) brightness(1.18)";
+}
+function paintFilter(ctx: CanvasRenderingContext2D, source: CanvasImageSource, width: number, height: number, filter: Filter) {
+  applyFilter(ctx, filter);
+  ctx.drawImage(source, 0, 0, width, height);
+  ctx.filter = "none";
+  if (filter === "newjeans") {
+    const pixels = ctx.getImageData(0, 0, width, height).data;
+    const blockSize = Math.max(3, Math.round(width / 180));
+    const palette = [[244, 245, 250], [167, 177, 211], [91, 103, 158], [29, 39, 91]];
+    for (let y = 0; y < height; y += blockSize) for (let x = 0; x < width; x += blockSize) {
+      const i = (y * width + x) * 4;
+      const luminance = ((pixels[i] ?? 0) * .299 + (pixels[i + 1] ?? 0) * .587 + (pixels[i + 2] ?? 0) * .114) / 255;
+      const [r, g, b] = palette[Math.min(3, Math.floor((1 - luminance) * 4))];
+      ctx.fillStyle = `rgb(${r} ${g} ${b})`;
+      ctx.fillRect(x, y, blockSize, blockSize);
+    }
+  } else if (filter === "sketch") {
+    ctx.globalCompositeOperation = "multiply";
+    ctx.strokeStyle = "rgba(60,60,60,.28)";
+    ctx.lineWidth = 1;
+    for (let y = 0; y < height; y += Math.max(6, Math.round(height / 70))) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y + 3); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+}
+function filteredPhoto(source: HTMLVideoElement | HTMLCanvasElement, filter: Filter): string {
+  const canvas = document.createElement("canvas");
+  canvas.width = source instanceof HTMLVideoElement ? source.videoWidth : source.width;
+  canvas.height = source instanceof HTMLVideoElement ? source.videoHeight : source.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas tidak tersedia di browser ini");
+  paintFilter(ctx, source, canvas.width, canvas.height, filter);
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
 interface CameraStageProps {
   frameId: FrameConfig["id"];
   existing: Array<string | null>;
@@ -46,6 +86,8 @@ export function CameraStage({
   const [backgroundError, setBackgroundError] = useState<string | null>(null);
   const [backgroundLoading, setBackgroundLoading] = useState(false);
   const [backgroundReady, setBackgroundReady] = useState(false);
+  const [filter, setFilter] = useState<Filter>("none");
+  const filterCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const photosRef = useRef(photos);
   const videoRefLatest = useRef(videoRef);
@@ -101,6 +143,28 @@ export function CameraStage({
       stopPreview?.();
     };
   }, [background, status]);
+  useEffect(() => {
+    if (background || !videoRef.current || !filterCanvasRef.current) return;
+    const video = videoRef.current;
+    const canvas = filterCanvasRef.current;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
+    let raf = 0;
+    let stopped = false;
+    const draw = () => {
+      if (stopped) return;
+      raf = requestAnimationFrame(draw);
+      if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+      if (filter === "none") ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      else paintFilter(ctx, video, canvas.width, canvas.height, filter);
+    };
+    draw();
+    return () => { stopped = true; cancelAnimationFrame(raf); };
+  }, [filter, background, status]);
   const targets =
     retakeIndex !== null ? [retakeIndex] : frame.slots.map((_, index) => index);
   async function runCapture() {
@@ -130,10 +194,11 @@ export function CameraStage({
         const activeVideo = videoRefLatest.current.current;
         if (!activeVideo) throw new Error("Kamera belum siap");
         const backgroundCanvas = backgroundCanvasRef.current;
-        const data =
-          background && backgroundCanvas?.width && backgroundCanvas.height
-            ? backgroundCanvas.toDataURL("image/jpeg", 0.92)
-            : captureVideoFrame(activeVideo);
+        const filteredCanvas = filterCanvasRef.current;
+        const source = background && backgroundCanvas?.width && backgroundCanvas.height ? backgroundCanvas : filteredCanvas?.width && filteredCanvas.height ? filteredCanvas : activeVideo;
+        const data = filter === "none"
+          ? source instanceof HTMLVideoElement ? captureVideoFrame(source) : source.toDataURL("image/jpeg", 0.92)
+          : filteredPhoto(source, filter);
         const next = [...photosRef.current];
         next[index] = data;
         photosRef.current = next;
@@ -190,6 +255,7 @@ export function CameraStage({
         <section
           className="viewfinder"
           data-mirror={facing === "user"}
+          data-filter={filter}
           aria-label="Jendela pratinjau kamera"
         >
           <div className="camera-frame-viewport">
@@ -215,10 +281,12 @@ export function CameraStage({
             className={`camera-feed ${background ? "feed-hidden" : ""}`}
             aria-label="Pratinjau kamera langsung"
           />
+          {!background && <canvas ref={filterCanvasRef} className="camera-feed" aria-label="Pratinjau kamera dengan filter" />}
           {background && (
             <canvas
               ref={backgroundCanvasRef}
               className="camera-feed"
+              style={{ filter: "none" }}
               aria-label="Pratinjau kamera dengan latar virtual"
             />
           )}
@@ -341,6 +409,12 @@ export function CameraStage({
           <p className="keyboard-note">
             Tekan <kbd>spasi</kbd> untuk menjepret
           </p>
+          <fieldset className="background-picker filter-picker" disabled={busy} aria-label="Pilih filter">
+            <legend>Filter</legend>
+            {([ ["none", "Asli"], ["bw", "B&W"], ["newjeans", "NJS"], ["sketch", "Sketch"] ] as const).map(([value, label]) => (
+              <button key={value} type="button" className="background-choice" aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>
+            ))}
+          </fieldset>
           {backgrounds && (
             <fieldset className="background-picker" aria-label="Pilih latar kamera">
               <button

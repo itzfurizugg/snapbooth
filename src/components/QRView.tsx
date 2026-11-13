@@ -20,6 +20,8 @@ export function QRView({
   );
   useEffect(() => {
     let cancelled = false;
+    setQrDataUrl(null);
+    setQrError(false);
     generateQrDataUrl(strip.shareUrl)
       .then((url) => {
         if (!cancelled) setQrDataUrl(url);
@@ -47,9 +49,8 @@ export function QRView({
     }
   }
   return (
-    <section className="workflow-page">
+    <section className="workflow-page result-page">
       <div className="page-heading">
-        <span className="heading-index">04</span>
         <div className="heading-copy">
           <h1>Strip siap</h1>
           <p>Pindai QR atau buka tautan untuk mengunduh hasil.</p>

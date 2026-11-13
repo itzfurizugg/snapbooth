@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 export function StepHeader({
-  index,
   title,
   lede,
   meta,
@@ -15,7 +14,6 @@ export function StepHeader({
   return (
     <div className="page-heading">
       {action && <div className="heading-back">{action}</div>}
-      <span className="heading-index">{index}</span>
       <div className="heading-copy">
         <h1>{title}</h1>
         {lede && <p>{lede}</p>}
